@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require("discord.js");
 const { useQueue, useMainPlayer } = require("discord-player");
 
 module.exports = {
@@ -10,12 +10,6 @@ module.exports = {
                 .setName("música")
                 .setDescription("O nome ou URL da música que deseja adicionar.")
                 .setRequired(true)
-        )
-        .addIntegerOption(option =>
-            option
-                .setName("posição")
-                .setDescription("A posição na fila onde a música será inserida (começa em 1).")
-                .setRequired(true)
         ),
     async execute(interaction) {
         const player = useMainPlayer();
@@ -26,22 +20,67 @@ module.exports = {
         }
 
         const query = interaction.options.getString("música"); // Obtém a música fornecida pelo usuário
-        const position = interaction.options.getInteger("posição"); // Obtém a posição fornecida pelo usuário
+        const tracks = queue.tracks.toArray(); // Obtém as músicas da fila
 
-        const searchResult = await player.search(query, { requestedBy: interaction.user });
-
-        if (!searchResult || !searchResult.tracks.length) {
-            return interaction.reply("Nenhuma música encontrada para a busca fornecida.");
+        if (tracks.length === 0) {
+            return interaction.reply("A fila está vazia. Adicione músicas antes de usar este comando.");
         }
 
-        const tracks = queue.tracks.toArray();
+        // Gera as opções para o menu suspenso
+        const menuOptions = tracks.map((track, index) => ({
+            label: `${index + 1}. ${track.title}`,
+            description: `Duração: ${track.duration}`,
+            value: `${index}` // Índice da música na fila
+        }));
 
-        if (position < 1 || position > tracks.length + 1) {
-            return interaction.reply(`Número inválido! Escolha um número entre 1 e ${tracks.length + 1}.`);
-        }
+        // Adiciona uma opção para inserir no final da fila
+        menuOptions.push({
+            label: "Final da fila",
+            description: "Adiciona a música no final da fila.",
+            value: `${tracks.length}`
+        });
 
-        queue.insertTrack(searchResult.tracks[0], position - 1); // Insere a música na posição ajustada para índice 0
+        // Cria o menu suspenso
+        const selectMenu = new StringSelectMenuBuilder()
+            .setCustomId("select-position")
+            .setPlaceholder("Escolha a posição na fila")
+            .addOptions(menuOptions);
 
-        return interaction.reply(`🎶 A música **${searchResult.tracks[0].title}** foi adicionada na posição ${position} da fila.`);
+        const row = new ActionRowBuilder().addComponents(selectMenu);
+
+        // Envia o menu para o usuário
+        await interaction.reply({
+            content: "Escolha a posição onde deseja inserir a música:",
+            components: [row]
+        });
+
+        // Coleta a interação do menu
+        const filter = i => i.customId === "select-position" && i.user.id === interaction.user.id;
+        const collector = interaction.channel.createMessageComponentCollector({ filter, time: 15000 });
+
+        collector.on("collect", async i => {
+            const position = parseInt(i.values[0], 10); // Obtém a posição escolhida pelo usuário
+            const searchResult = await player.search(query, { requestedBy: interaction.user });
+
+            if (!searchResult || !searchResult.tracks.length) {
+                return i.reply("Nenhuma música encontrada para a busca fornecida.");
+            }
+
+            queue.insertTrack(searchResult.tracks[0], position); // Insere a música na posição escolhida
+
+            await i.update({
+                content: `🎶 A música **${searchResult.tracks[0].title}** foi adicionada na posição ${position + 1} da fila.`,
+                components: []
+            });
+        });
+
+        collector.on("end", collected => {
+            if (collected.size === 0) {
+                interaction.editReply({
+                    content: "Você não escolheu uma posição a tempo.",
+                    components: []
+                });
+            }
+        });
     },
 };
