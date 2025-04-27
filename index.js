@@ -28,14 +28,14 @@ client.login(process.env.TOKEN); // Certifique-se de que o TOKEN está carregado
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
   const command = interaction.client.commands.get(interaction.commandName);
-  if (!command){
+  if (!command) {
     console.error("Comando não encontrado");
     return
-  } 
-  try{
+  }
+  try {
     await command.execute(interaction);
   }
-  catch (error){
+  catch (error) {
     console.error(error);
     await interaction.reply("Erro ao executar esse comando!");
   }
