@@ -5,6 +5,8 @@ const { DefaultExtractors } = require("@discord-player/extractor");
 const fs = require("node:fs");
 const path = require("node:path");
 
+const ffmpegPath = require('ffmpeg-static');
+
 // Adicionando a intenção 'GuildVoiceStates'
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 client.commands = new Collection();
