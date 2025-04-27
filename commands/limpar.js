@@ -2,7 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("deletatudo")
+        .setName("limpar")
         .setDescription("Remove todas as mensagens do canal atual."),
     async execute(interaction) {
         // Verifica se o comando foi executado em um canal de texto
