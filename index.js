@@ -22,6 +22,18 @@ player.events.on('playerStart', (queue, track) => {
   queue.metadata.channel.send(`Tocando a musica **${track.cleanTitle}**!`);
 });
 
+// Adicionando um listener para o evento 'playerError'
+player.events.on('playerError', (queue, error) => {
+  console.error(`Erro no player: ${error.message}`);
+  queue.metadata.channel.send("Ocorreu um erro ao tentar reproduzir a música. Tente novamente mais tarde.");
+});
+
+// Adicionando um listener para o evento 'audioTrackError'
+player.events.on('audioTrackError', (queue, error) => {
+  console.error(`Erro ao processar a faixa: ${error.message}`);
+  queue.metadata.channel.send("Não foi possível reproduzir essa música. Tente outra faixa.");
+});
+
 // Definindo o caminho para os comandos
 const commandsPath = path.join(__dirname, "commands");
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(".js"));

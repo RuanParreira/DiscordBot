@@ -22,10 +22,10 @@ const rest = new REST({ version: "10" }).setToken(TOKEN);
 
 (async () => {
     try {
-        console.log(`Resetando ${commands.length} comandos...`); // Corrigido "leght" para "length"
+        console.log(`Resetando ${commands.length} comandos...`);
 
         const data = await rest.put(
-            Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), // Corrigido o nome da função
+            Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
             { body: commands }
         );
         console.log("Comandos registrados com sucesso!");
