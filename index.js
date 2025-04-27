@@ -1,10 +1,26 @@
-require("dotenv").config(); // Adicionado para carregar as variáveis de ambiente
+require("dotenv").config();
 const { Client, Events, GatewayIntentBits, Collection } = require("discord.js");
+const { Player } = require("discord-player");
+const { DefaultExtractors } = require("@discord-player/extractor");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+// Adicionando a intenção 'GuildVoiceStates'
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 client.commands = new Collection();
+
+// Configurando o Player
+const player = new Player(client);
+
+// Carregando os extratores padrão
+(async () => {
+  await player.extractors.loadMulti(DefaultExtractors);
+})();
+
+// Evento emitido quando uma faixa começa a tocar
+player.events.on('playerStart', (queue, track) => {
+  queue.metadata.channel.send(`Started playing **${track.cleanTitle}**!`);
+});
 
 // Definindo o caminho para os comandos
 const commandsPath = path.join(__dirname, "commands");
@@ -23,6 +39,7 @@ for (const file of commandFiles) {
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Pronto! Login realizado como ${readyClient.user.tag}`);
 });
+
 client.login(process.env.TOKEN); // Certifique-se de que o TOKEN está carregado no ambiente
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -30,12 +47,11 @@ client.on(Events.InteractionCreate, async interaction => {
   const command = interaction.client.commands.get(interaction.commandName);
   if (!command) {
     console.error("Comando não encontrado");
-    return
+    return;
   }
   try {
     await command.execute(interaction);
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error);
     await interaction.reply("Erro ao executar esse comando!");
   }
