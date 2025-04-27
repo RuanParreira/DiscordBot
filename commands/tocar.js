@@ -3,7 +3,7 @@ const { useMainPlayer } = require('discord-player');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('play')
+        .setName('tocar')
         .setDescription('Reproduz uma música no canal de voz.')
         .addStringOption(option =>
             option

@@ -19,7 +19,7 @@ const player = new Player(client);
 
 // Evento emitido quando uma faixa começa a tocar
 player.events.on('playerStart', (queue, track) => {
-  queue.metadata.channel.send(`Started playing **${track.cleanTitle}**!`);
+  queue.metadata.channel.send(`Tocando a musica **${track.cleanTitle}**!`);
 });
 
 // Definindo o caminho para os comandos
